@@ -33,7 +33,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
           <Input
             value={employee.Name}
             readOnly
-            className="bg-white"
+            disabled
+            className="bg-gray-50 cursor-not-allowed"
           />
         </div>
         
@@ -45,7 +46,8 @@ const EmployeeDetails = ({ employee }: EmployeeDetailsProps) => {
           <Input
             value={employee.Department}
             readOnly
-            className="bg-white"
+            disabled
+            className="bg-gray-50 cursor-not-allowed"
           />
         </div>
       </CardContent>
