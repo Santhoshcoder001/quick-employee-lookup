@@ -40,6 +40,25 @@ const EmployeeDetails = ({ employee, onPlaceChange }: EmployeeDetailsProps) => {
     "Raurkela", "Mangaluru", "Tirunelveli", "Gaya", "Tiruppur"
   ];
 
+  // Filter out already selected places for each dropdown
+  const getAvailablePlaces = (currentField: string) => {
+    const selectedPlaces = [];
+    
+    if (employee.Place1 && currentField !== "Place1") {
+      selectedPlaces.push(employee.Place1);
+    }
+    
+    if (employee.Place2 && currentField !== "Place2") {
+      selectedPlaces.push(employee.Place2);
+    }
+    
+    if (employee.Place3 && currentField !== "Place3") {
+      selectedPlaces.push(employee.Place3);
+    }
+    
+    return placeOptions.filter(place => !selectedPlaces.includes(place));
+  };
+
   return (
     <Card className="mt-6 border border-green-200 bg-green-50">
       <CardHeader className="pb-2">
@@ -89,7 +108,7 @@ const EmployeeDetails = ({ employee, onPlaceChange }: EmployeeDetailsProps) => {
               <SelectValue placeholder="Select place 1" />
             </SelectTrigger>
             <SelectContent>
-              {placeOptions.map((place) => (
+              {getAvailablePlaces("Place1").map((place) => (
                 <SelectItem key={`place1-${place}`} value={place}>
                   {place}
                 </SelectItem>
@@ -107,12 +126,13 @@ const EmployeeDetails = ({ employee, onPlaceChange }: EmployeeDetailsProps) => {
           <Select
             value={employee.Place2 || ""}
             onValueChange={(value) => onPlaceChange("Place2", value)}
+            disabled={!employee.Place1} // Disable if Place1 not selected
           >
             <SelectTrigger>
               <SelectValue placeholder="Select place 2" />
             </SelectTrigger>
             <SelectContent>
-              {placeOptions.map((place) => (
+              {getAvailablePlaces("Place2").map((place) => (
                 <SelectItem key={`place2-${place}`} value={place}>
                   {place}
                 </SelectItem>
@@ -130,12 +150,13 @@ const EmployeeDetails = ({ employee, onPlaceChange }: EmployeeDetailsProps) => {
           <Select
             value={employee.Place3 || ""}
             onValueChange={(value) => onPlaceChange("Place3", value)}
+            disabled={!employee.Place2} // Disable if Place2 not selected
           >
             <SelectTrigger>
               <SelectValue placeholder="Select place 3" />
             </SelectTrigger>
             <SelectContent>
-              {placeOptions.map((place) => (
+              {getAvailablePlaces("Place3").map((place) => (
                 <SelectItem key={`place3-${place}`} value={place}>
                   {place}
                 </SelectItem>
