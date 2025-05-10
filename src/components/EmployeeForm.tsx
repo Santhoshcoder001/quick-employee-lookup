@@ -12,6 +12,9 @@ interface EmployeeData {
   EmpID: string;
   Name: string;
   Department: string;
+  Place1?: string;
+  Place2?: string;
+  Place3?: string;
 }
 
 const EmployeeForm = () => {
@@ -59,6 +62,15 @@ const EmployeeForm = () => {
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePlaceChange = (field: string, value: string) => {
+    if (employeeData) {
+      setEmployeeData({
+        ...employeeData,
+        [field]: value
+      });
     }
   };
 
@@ -123,7 +135,12 @@ const EmployeeForm = () => {
             </div>
           </div>
           
-          {employeeData && <EmployeeDetails employee={employeeData} />}
+          {employeeData && (
+            <EmployeeDetails 
+              employee={employeeData} 
+              onPlaceChange={handlePlaceChange}
+            />
+          )}
         </form>
       </CardContent>
     </Card>
