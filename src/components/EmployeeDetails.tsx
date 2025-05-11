@@ -4,80 +4,87 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Database, Info, MapPin, Globe } from "lucide-react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import PlaceOptionGrid from "./PlaceOptionGrid";
 
 interface EmployeeData {
   EmpID: string;
   Name: string;
   Department: string;
-  Section1_Place1?: string;
-  Section1_Place2?: string;
-  Section1_Place3?: string;
-  Section2_Place1?: string;
-  Section2_Place2?: string;
-  Section2_Place3?: string;
+  Section1_option?: string;
+  Section2_option?: string;
 }
 
 interface EmployeeDetailsProps {
   employee: EmployeeData;
-  onPlaceChange: (section: string, field: string, value: string) => void;
+  onOptionSelect: (section: string, optionId: string) => void;
   onSubmit: () => void;
 }
 
-const EmployeeDetails = ({ employee, onPlaceChange, onSubmit }: EmployeeDetailsProps) => {
-  // List of domestic place options
-  const domesticPlaceOptions = [
-    "Mumbai", "Delhi", "Bengaluru", "Ahmedabad", "Hyderabad", "Chennai", 
-    "Kolkata", "Pune", "Jaipur", "Surat", "Lucknow",
+const EmployeeDetails = ({ employee, onOptionSelect, onSubmit }: EmployeeDetailsProps) => {
+  // List of domestic place options organized in sets
+  const domesticOptionSets = [
+    {
+      id: "option1",
+      name: "Option 1",
+      places: [
+        { id: "place1", name: "Mumbai" },
+        { id: "place2", name: "Delhi" },
+        { id: "place3", name: "Kolkata" },
+      ]
+    },
+    {
+      id: "option2",
+      name: "Option 2",
+      places: [
+        { id: "place1", name: "Bengaluru" },
+        { id: "place2", name: "Chennai" },
+        { id: "place3", name: "Hyderabad" },
+      ]
+    },
+    {
+      id: "option3",
+      name: "Option 3",
+      places: [
+        { id: "place1", name: "Ahmedabad" },
+        { id: "place2", name: "Pune" },
+        { id: "place3", name: "Jaipur" },
+      ]
+    }
   ];
 
-  // List of foreign place options
-  const foreignPlaceOptions = [
-    "New York", "London", "Tokyo", "Paris", "Dubai", "Singapore", 
-    "Hong Kong", "Sydney", "Berlin", "Toronto", "Zurich",
+  // List of foreign place options organized in sets
+  const foreignOptionSets = [
+    {
+      id: "option1",
+      name: "Option 1",
+      places: [
+        { id: "place1", name: "New York" },
+        { id: "place2", name: "London" },
+        { id: "place3", name: "Tokyo" },
+      ]
+    },
+    {
+      id: "option2",
+      name: "Option 2",
+      places: [
+        { id: "place1", name: "Paris" },
+        { id: "place2", name: "Dubai" },
+        { id: "place3", name: "Singapore" },
+      ]
+    },
+    {
+      id: "option3",
+      name: "Option 3",
+      places: [
+        { id: "place1", name: "Berlin" },
+        { id: "place2", name: "Sydney" },
+        { id: "place3", name: "Toronto" },
+      ]
+    }
   ];
 
   // Check if user is from Technical department
   const isTechnicalDepartment = employee.Department === "Technical";
-
-  // Filter out already selected places for each section's dropdown
-  const getAvailablePlaces = (section: string, currentField: string, options: string[]) => {
-    const selectedPlaces = [];
-    
-    if (section === "Section1") {
-      if (employee.Section1_Place1 && currentField !== "Place1") {
-        selectedPlaces.push(employee.Section1_Place1);
-      }
-      
-      if (employee.Section1_Place2 && currentField !== "Place2") {
-        selectedPlaces.push(employee.Section1_Place2);
-      }
-      
-      if (employee.Section1_Place3 && currentField !== "Place3") {
-        selectedPlaces.push(employee.Section1_Place3);
-      }
-    } else {
-      if (employee.Section2_Place1 && currentField !== "Place1") {
-        selectedPlaces.push(employee.Section2_Place1);
-      }
-      
-      if (employee.Section2_Place2 && currentField !== "Place2") {
-        selectedPlaces.push(employee.Section2_Place2);
-      }
-      
-      if (employee.Section2_Place3 && currentField !== "Place3") {
-        selectedPlaces.push(employee.Section2_Place3);
-      }
-    }
-    
-    return options.filter(place => !selectedPlaces.includes(place));
-  };
 
   return (
     <Card className="mt-6 border border-green-200 bg-green-50">
@@ -119,73 +126,18 @@ const EmployeeDetails = ({ employee, onPlaceChange, onSubmit }: EmployeeDetailsP
           <h3 className="text-md font-semibold mb-3 flex items-center gap-1.5">
             <MapPin size={16} />
             Section 1 - Domestic Places
-            {isTechnicalDepartment && <span className="text-xs text-red-500 ml-2">(Disabled for Technical Department)</span>}
+            {isTechnicalDepartment && (
+              <span className="text-xs text-red-500 ml-2">(Disabled for Technical Department)</span>
+            )}
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Place 1 Selection */}
-            <div className="space-y-2">
-              <Label>Place 1</Label>
-              <Select
-                value={employee.Section1_Place1 || ""}
-                onValueChange={(value) => onPlaceChange("Section1", "Place1", value)}
-                disabled={isTechnicalDepartment}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select place 1" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailablePlaces("Section1", "Place1", domesticPlaceOptions).map((place) => (
-                    <SelectItem key={`section1-place1-${place}`} value={place}>
-                      {place}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Place 2 Selection */}
-            <div className="space-y-2">
-              <Label>Place 2</Label>
-              <Select
-                value={employee.Section1_Place2 || ""}
-                onValueChange={(value) => onPlaceChange("Section1", "Place2", value)}
-                disabled={isTechnicalDepartment || !employee.Section1_Place1}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select place 2" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailablePlaces("Section1", "Place2", domesticPlaceOptions).map((place) => (
-                    <SelectItem key={`section1-place2-${place}`} value={place}>
-                      {place}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Place 3 Selection */}
-            <div className="space-y-2">
-              <Label>Place 3</Label>
-              <Select
-                value={employee.Section1_Place3 || ""}
-                onValueChange={(value) => onPlaceChange("Section1", "Place3", value)}
-                disabled={isTechnicalDepartment || !employee.Section1_Place2}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select place 3" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailablePlaces("Section1", "Place3", domesticPlaceOptions).map((place) => (
-                    <SelectItem key={`section1-place3-${place}`} value={place}>
-                      {place}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <PlaceOptionGrid
+            title="Select one option for domestic places"
+            optionSets={domesticOptionSets}
+            selectedOption={employee.Section1_option || null}
+            onOptionSelect={(optionId) => onOptionSelect("Section1", optionId)}
+            disabled={isTechnicalDepartment}
+          />
         </div>
 
         {/* Section 2 - Foreign Places */}
@@ -195,69 +147,12 @@ const EmployeeDetails = ({ employee, onPlaceChange, onSubmit }: EmployeeDetailsP
             Section 2 - Foreign Places
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Place 1 Selection */}
-            <div className="space-y-2">
-              <Label>Place 1</Label>
-              <Select
-                value={employee.Section2_Place1 || ""}
-                onValueChange={(value) => onPlaceChange("Section2", "Place1", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select place 1" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailablePlaces("Section2", "Place1", foreignPlaceOptions).map((place) => (
-                    <SelectItem key={`section2-place1-${place}`} value={place}>
-                      {place}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Place 2 Selection */}
-            <div className="space-y-2">
-              <Label>Place 2</Label>
-              <Select
-                value={employee.Section2_Place2 || ""}
-                onValueChange={(value) => onPlaceChange("Section2", "Place2", value)}
-                disabled={!employee.Section2_Place1}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select place 2" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailablePlaces("Section2", "Place2", foreignPlaceOptions).map((place) => (
-                    <SelectItem key={`section2-place2-${place}`} value={place}>
-                      {place}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Place 3 Selection */}
-            <div className="space-y-2">
-              <Label>Place 3</Label>
-              <Select
-                value={employee.Section2_Place3 || ""}
-                onValueChange={(value) => onPlaceChange("Section2", "Place3", value)}
-                disabled={!employee.Section2_Place2}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select place 3" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailablePlaces("Section2", "Place3", foreignPlaceOptions).map((place) => (
-                    <SelectItem key={`section2-place3-${place}`} value={place}>
-                      {place}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <PlaceOptionGrid
+            title="Select one option for foreign places"
+            optionSets={foreignOptionSets}
+            selectedOption={employee.Section2_option || null}
+            onOptionSelect={(optionId) => onOptionSelect("Section2", optionId)}
+          />
         </div>
       </CardContent>
     </Card>

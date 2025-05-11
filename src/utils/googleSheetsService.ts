@@ -10,12 +10,14 @@
  * 3. A secure way to authenticate and make API requests
  */
 
-interface SheetSubmissionData {
+export interface SheetSubmissionData {
   userId: string;
   department: string;
+  section1_option: string;
   section1_place1: string;
   section1_place2: string;
   section1_place3: string;
+  section2_option: string;
   section2_place1: string;
   section2_place2: string;
   section2_place3: string;
@@ -73,15 +75,17 @@ export const submitToGoogleSheets = async (data: SheetSubmissionData): Promise<v
  *   
  *   const client = await auth.getClient();
  *   const spreadsheetId = 'YOUR_SPREADSHEET_ID';
- *   const range = 'Sheet1!A:I';
+ *   const range = 'Sheet1!A:K';
  *   
  *   const values = [
  *     [
  *       data.userId,
  *       data.department,
+ *       data.section1_option,
  *       data.section1_place1,
  *       data.section1_place2,
  *       data.section1_place3,
+ *       data.section2_option,
  *       data.section2_place1,
  *       data.section2_place2,
  *       data.section2_place3,

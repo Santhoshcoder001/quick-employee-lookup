@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,17 +7,14 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Send } from "lucide-react";
 import EmployeeDetails from "./EmployeeDetails";
+import { SheetSubmissionData, submitToGoogleSheets } from "@/utils/googleSheetsService";
 
 interface EmployeeData {
   EmpID: string;
   Name: string;
   Department: string;
-  Section1_Place1?: string;
-  Section1_Place2?: string;
-  Section1_Place3?: string;
-  Section2_Place1?: string;
-  Section2_Place2?: string;
-  Section2_Place3?: string;
+  Section1_option?: string;
+  Section2_option?: string;
 }
 
 const EmployeeForm = () => {
@@ -64,11 +62,11 @@ const EmployeeForm = () => {
     }
   };
 
-  const handlePlaceChange = (section: string, field: string, value: string) => {
+  const handleOptionSelect = (section: string, optionId: string) => {
     if (employeeData) {
       setEmployeeData({
         ...employeeData,
-        [`${section}_${field}`]: value
+        [`${section}_option`]: optionId
       });
     }
   };
@@ -102,6 +100,39 @@ const EmployeeForm = () => {
     }
   };
 
+  const parseOptionSelection = (optionId: string | undefined) => {
+    if (!optionId) return { optionSet: null, place1: "", place2: "", place3: "" };
+    
+    // Format: "optionX-placeY"
+    const [optionSet, placeId] = optionId.split("-");
+    
+    // Based on selected option, determine the places for that option set
+    let places;
+    if (optionSet === "option1") {
+      places = {
+        domestic: ["Mumbai", "Delhi", "Kolkata"],
+        foreign: ["New York", "London", "Tokyo"]
+      };
+    } else if (optionSet === "option2") {
+      places = {
+        domestic: ["Bengaluru", "Chennai", "Hyderabad"],
+        foreign: ["Paris", "Dubai", "Singapore"]
+      };
+    } else {
+      places = {
+        domestic: ["Ahmedabad", "Pune", "Jaipur"],
+        foreign: ["Berlin", "Sydney", "Toronto"]
+      };
+    }
+    
+    return {
+      optionSet,
+      place1: places.domestic[0],
+      place2: places.domestic[1],
+      place3: places.domestic[2]
+    };
+  }
+
   const submitToGoogleSheet = async () => {
     if (!employeeData) return;
 
@@ -109,11 +140,12 @@ const EmployeeForm = () => {
 
     const isTechnicalDepartment = employeeData.Department === "Technical";
 
-    // Check if required fields are filled
-    if (!isFormValid(employeeData, isTechnicalDepartment)) {
+    // Check if required options are selected
+    if ((isTechnicalDepartment && !employeeData.Section2_option) || 
+        (!isTechnicalDepartment && (!employeeData.Section1_option || !employeeData.Section2_option))) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please select required options for all sections",
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -121,32 +153,53 @@ const EmployeeForm = () => {
     }
 
     try {
-      // In a real application, this would call your API to submit to Google Sheets
-      await new Promise(resolve => setTimeout(resolve, 1200)); // simulate network delay
+      // Parse the selected options
+      const section1Selection = parseOptionSelection(employeeData.Section1_option);
+      const section2Selection = parseOptionSelection(employeeData.Section2_option);
+      
+      // Get the option sets and places based on selection
+      const section1Option = section1Selection.optionSet;
+      const section2Option = section2Selection.optionSet;
+      
+      // Determine places for domestic section
+      let domesticPlaces = ["", "", ""];
+      if (section1Option === "option1") {
+        domesticPlaces = ["Mumbai", "Delhi", "Kolkata"];
+      } else if (section1Option === "option2") {
+        domesticPlaces = ["Bengaluru", "Chennai", "Hyderabad"];
+      } else if (section1Option === "option3") {
+        domesticPlaces = ["Ahmedabad", "Pune", "Jaipur"];
+      }
+      
+      // Determine places for foreign section
+      let foreignPlaces = ["", "", ""];
+      if (section2Option === "option1") {
+        foreignPlaces = ["New York", "London", "Tokyo"];
+      } else if (section2Option === "option2") {
+        foreignPlaces = ["Paris", "Dubai", "Singapore"];
+      } else if (section2Option === "option3") {
+        foreignPlaces = ["Berlin", "Sydney", "Toronto"];
+      }
 
       // Prepare data for submission
-      const submissionData = {
+      const submissionData: SheetSubmissionData = {
         userId: employeeData.EmpID,
         department: employeeData.Department,
-        section1_place1: isTechnicalDepartment ? "N/A" : employeeData.Section1_Place1,
-        section1_place2: isTechnicalDepartment ? "N/A" : employeeData.Section1_Place2,
-        section1_place3: isTechnicalDepartment ? "N/A" : employeeData.Section1_Place3,
-        section2_place1: employeeData.Section2_Place1,
-        section2_place2: employeeData.Section2_Place2,
-        section2_place3: employeeData.Section2_Place3,
+        section1_option: isTechnicalDepartment ? "N/A" : (section1Option || ""),
+        section1_place1: isTechnicalDepartment ? "N/A" : domesticPlaces[0],
+        section1_place2: isTechnicalDepartment ? "N/A" : domesticPlaces[1],
+        section1_place3: isTechnicalDepartment ? "N/A" : domesticPlaces[2],
+        section2_option: section2Option || "",
+        section2_place1: foreignPlaces[0],
+        section2_place2: foreignPlaces[1],
+        section2_place3: foreignPlaces[2],
         timestamp: new Date().toISOString()
       };
 
       console.log("Submitting to Google Sheets:", submissionData);
 
-      // In a real application, you would send this data to your backend
-      // const response = await fetch('YOUR_API_ENDPOINT', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(submissionData),
-      // });
+      // In a real application, you would call your backend API
+      await submitToGoogleSheets(submissionData);
 
       toast({
         title: "Success",
@@ -163,28 +216,6 @@ const EmployeeForm = () => {
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // Validation function
-  const isFormValid = (data: EmployeeData, isTechnical: boolean) => {
-    if (isTechnical) {
-      // For Technical department, only Section 2 is required
-      return (
-        !!data.Section2_Place1 &&
-        !!data.Section2_Place2 &&
-        !!data.Section2_Place3
-      );
-    } else {
-      // For other departments, both sections are required
-      return (
-        !!data.Section1_Place1 &&
-        !!data.Section1_Place2 &&
-        !!data.Section1_Place3 &&
-        !!data.Section2_Place1 &&
-        !!data.Section2_Place2 &&
-        !!data.Section2_Place3
-      );
     }
   };
 
@@ -224,7 +255,7 @@ const EmployeeForm = () => {
             <>
               <EmployeeDetails 
                 employee={employeeData} 
-                onPlaceChange={handlePlaceChange}
+                onOptionSelect={handleOptionSelect}
                 onSubmit={submitToGoogleSheet}
               />
               
