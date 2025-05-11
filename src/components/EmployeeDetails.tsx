@@ -3,7 +3,7 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Database, Info, MapPin } from "lucide-react";
+import { User, Database, Info, MapPin, Globe } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -16,47 +16,67 @@ interface EmployeeData {
   EmpID: string;
   Name: string;
   Department: string;
-  Place1?: string;
-  Place2?: string;
-  Place3?: string;
+  Section1_Place1?: string;
+  Section1_Place2?: string;
+  Section1_Place3?: string;
+  Section2_Place1?: string;
+  Section2_Place2?: string;
+  Section2_Place3?: string;
 }
 
 interface EmployeeDetailsProps {
   employee: EmployeeData;
-  onPlaceChange: (field: string, value: string) => void;
+  onPlaceChange: (section: string, field: string, value: string) => void;
+  onSubmit: () => void;
 }
 
-const EmployeeDetails = ({ employee, onPlaceChange }: EmployeeDetailsProps) => {
-  // List of place options from the Excel sheet
-  const placeOptions = [
-    // Option1 column
+const EmployeeDetails = ({ employee, onPlaceChange, onSubmit }: EmployeeDetailsProps) => {
+  // List of domestic place options
+  const domesticPlaceOptions = [
     "Mumbai", "Delhi", "Bengaluru", "Ahmedabad", "Hyderabad", "Chennai", 
     "Kolkata", "Pune", "Jaipur", "Surat", "Lucknow",
-    // Option2 column
-    "Visakhapatnam", "Vadodara", "Firozabad", "Ludhiana", "Rajkot", "Agra",
-    "Siliguri", "Nashik", "Patiala", "Kalyan-Dombivali", "Jhansi",
-    // Option3 column
-    "Sangli", "Loni", "Patna", "Pondicherry", "Nellore", "Jammu", 
-    "Raurkela", "Mangaluru", "Tirunelveli", "Gaya", "Tiruppur"
   ];
 
-  // Filter out already selected places for each dropdown
-  const getAvailablePlaces = (currentField: string) => {
+  // List of foreign place options
+  const foreignPlaceOptions = [
+    "New York", "London", "Tokyo", "Paris", "Dubai", "Singapore", 
+    "Hong Kong", "Sydney", "Berlin", "Toronto", "Zurich",
+  ];
+
+  // Check if user is from Technical department
+  const isTechnicalDepartment = employee.Department === "Technical";
+
+  // Filter out already selected places for each section's dropdown
+  const getAvailablePlaces = (section: string, currentField: string, options: string[]) => {
     const selectedPlaces = [];
     
-    if (employee.Place1 && currentField !== "Place1") {
-      selectedPlaces.push(employee.Place1);
+    if (section === "Section1") {
+      if (employee.Section1_Place1 && currentField !== "Place1") {
+        selectedPlaces.push(employee.Section1_Place1);
+      }
+      
+      if (employee.Section1_Place2 && currentField !== "Place2") {
+        selectedPlaces.push(employee.Section1_Place2);
+      }
+      
+      if (employee.Section1_Place3 && currentField !== "Place3") {
+        selectedPlaces.push(employee.Section1_Place3);
+      }
+    } else {
+      if (employee.Section2_Place1 && currentField !== "Place1") {
+        selectedPlaces.push(employee.Section2_Place1);
+      }
+      
+      if (employee.Section2_Place2 && currentField !== "Place2") {
+        selectedPlaces.push(employee.Section2_Place2);
+      }
+      
+      if (employee.Section2_Place3 && currentField !== "Place3") {
+        selectedPlaces.push(employee.Section2_Place3);
+      }
     }
     
-    if (employee.Place2 && currentField !== "Place2") {
-      selectedPlaces.push(employee.Place2);
-    }
-    
-    if (employee.Place3 && currentField !== "Place3") {
-      selectedPlaces.push(employee.Place3);
-    }
-    
-    return placeOptions.filter(place => !selectedPlaces.includes(place));
+    return options.filter(place => !selectedPlaces.includes(place));
   };
 
   return (
@@ -94,75 +114,150 @@ const EmployeeDetails = ({ employee, onPlaceChange }: EmployeeDetailsProps) => {
           />
         </div>
 
-        {/* Place 1 Selection */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-1.5">
+        {/* Section 1 - Domestic Places */}
+        <div className={`${isTechnicalDepartment ? 'opacity-50' : ''}`}>
+          <h3 className="text-md font-semibold mb-3 flex items-center gap-1.5">
             <MapPin size={16} />
-            Place 1
-          </Label>
-          <Select
-            value={employee.Place1 || ""}
-            onValueChange={(value) => onPlaceChange("Place1", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select place 1" />
-            </SelectTrigger>
-            <SelectContent>
-              {getAvailablePlaces("Place1").map((place) => (
-                <SelectItem key={`place1-${place}`} value={place}>
-                  {place}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            Section 1 - Domestic Places
+            {isTechnicalDepartment && <span className="text-xs text-red-500 ml-2">(Disabled for Technical Department)</span>}
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Place 1 Selection */}
+            <div className="space-y-2">
+              <Label>Place 1</Label>
+              <Select
+                value={employee.Section1_Place1 || ""}
+                onValueChange={(value) => onPlaceChange("Section1", "Place1", value)}
+                disabled={isTechnicalDepartment}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select place 1" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailablePlaces("Section1", "Place1", domesticPlaceOptions).map((place) => (
+                    <SelectItem key={`section1-place1-${place}`} value={place}>
+                      {place}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Place 2 Selection */}
+            <div className="space-y-2">
+              <Label>Place 2</Label>
+              <Select
+                value={employee.Section1_Place2 || ""}
+                onValueChange={(value) => onPlaceChange("Section1", "Place2", value)}
+                disabled={isTechnicalDepartment || !employee.Section1_Place1}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select place 2" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailablePlaces("Section1", "Place2", domesticPlaceOptions).map((place) => (
+                    <SelectItem key={`section1-place2-${place}`} value={place}>
+                      {place}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Place 3 Selection */}
+            <div className="space-y-2">
+              <Label>Place 3</Label>
+              <Select
+                value={employee.Section1_Place3 || ""}
+                onValueChange={(value) => onPlaceChange("Section1", "Place3", value)}
+                disabled={isTechnicalDepartment || !employee.Section1_Place2}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select place 3" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailablePlaces("Section1", "Place3", domesticPlaceOptions).map((place) => (
+                    <SelectItem key={`section1-place3-${place}`} value={place}>
+                      {place}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        {/* Place 2 Selection */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-1.5">
-            <MapPin size={16} />
-            Place 2
-          </Label>
-          <Select
-            value={employee.Place2 || ""}
-            onValueChange={(value) => onPlaceChange("Place2", value)}
-            disabled={!employee.Place1} // Disable if Place1 not selected
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select place 2" />
-            </SelectTrigger>
-            <SelectContent>
-              {getAvailablePlaces("Place2").map((place) => (
-                <SelectItem key={`place2-${place}`} value={place}>
-                  {place}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Section 2 - Foreign Places */}
+        <div>
+          <h3 className="text-md font-semibold mb-3 flex items-center gap-1.5">
+            <Globe size={16} />
+            Section 2 - Foreign Places
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Place 1 Selection */}
+            <div className="space-y-2">
+              <Label>Place 1</Label>
+              <Select
+                value={employee.Section2_Place1 || ""}
+                onValueChange={(value) => onPlaceChange("Section2", "Place1", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select place 1" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailablePlaces("Section2", "Place1", foreignPlaceOptions).map((place) => (
+                    <SelectItem key={`section2-place1-${place}`} value={place}>
+                      {place}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* Place 3 Selection */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-1.5">
-            <MapPin size={16} />
-            Place 3
-          </Label>
-          <Select
-            value={employee.Place3 || ""}
-            onValueChange={(value) => onPlaceChange("Place3", value)}
-            disabled={!employee.Place2} // Disable if Place2 not selected
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select place 3" />
-            </SelectTrigger>
-            <SelectContent>
-              {getAvailablePlaces("Place3").map((place) => (
-                <SelectItem key={`place3-${place}`} value={place}>
-                  {place}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {/* Place 2 Selection */}
+            <div className="space-y-2">
+              <Label>Place 2</Label>
+              <Select
+                value={employee.Section2_Place2 || ""}
+                onValueChange={(value) => onPlaceChange("Section2", "Place2", value)}
+                disabled={!employee.Section2_Place1}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select place 2" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailablePlaces("Section2", "Place2", foreignPlaceOptions).map((place) => (
+                    <SelectItem key={`section2-place2-${place}`} value={place}>
+                      {place}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Place 3 Selection */}
+            <div className="space-y-2">
+              <Label>Place 3</Label>
+              <Select
+                value={employee.Section2_Place3 || ""}
+                onValueChange={(value) => onPlaceChange("Section2", "Place3", value)}
+                disabled={!employee.Section2_Place2}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select place 3" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailablePlaces("Section2", "Place3", foreignPlaceOptions).map((place) => (
+                    <SelectItem key={`section2-place3-${place}`} value={place}>
+                      {place}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
